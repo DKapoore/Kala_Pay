@@ -197,6 +197,26 @@ button:active {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.upi-details {
+  background: #f0f7ff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+  border-left: 4px solid #1a73e8;
+}
+
+.upi-details h3 {
+  color: #1a73e8;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.upi-details p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #5f6368;
+}
 </style>
 </head>
 
@@ -269,7 +289,14 @@ button:active {
     </div>
 
     <div class="payment-info">
-      You will be redirected to UPI payment with <strong>Devendra Kapoore</strong>
+      You will be redirected to UPI payment with <strong>Payment</strong>
+    </div>
+
+    <div class="upi-details">
+      <h3>UPI Payment Details</h3>
+      <p><strong>UPI ID:</strong> Q51285975@ybl</p>
+      <p><strong>Payee Name:</strong> Payment</p>
+      <p><strong>Currency:</strong> INR</p>
     </div>
 
     <div class="button-group">
@@ -297,7 +324,7 @@ const currentDate = new Date();
 const currentMonth = currentDate.toISOString().slice(0, 7);
 document.getElementById("month").value = currentMonth;
 
-// FORM SUBMIT HANDLER - UPDATED SCRIPT
+// FORM SUBMIT HANDLER - UPDATED WITH NEW UPI LINK
 document.getElementById("payForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -340,11 +367,11 @@ document.getElementById("payForm").addEventListener("submit", async function(e) 
     // Prepare memo text
     const memo = `Flat: ${data.flat} - ${data.name} - ${data.month} - ${data.purpose}`;
 
-    // UPI URL (Guaranteed Working Format)
+    // UPDATED UPI URL with new payment details
     const upiUrl =
       "upi://pay" +
-      `?pa=9766893279@kotak811` +
-      `&pn=${encodeURIComponent("Devendra Kapoore")}` +
+      `?pa=Q51285975@ybl` +
+      `&pn=${encodeURIComponent("Payment")}` +
       `&cu=INR` +
       `&am=${encodeURIComponent(data.amount)}` +
       `&tn=${encodeURIComponent(memo)}`;
