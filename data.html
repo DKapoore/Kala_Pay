@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Data - Kala Residency</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            font-size: 28px;
+        }
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+        .table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background: #e9ecef;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .total-row {
+            font-weight: bold;
+            background: #e7f3ff;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 18px;
+        }
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-links">
+            <a href="index.html">Generate New Payment QR</a>
+        </div>
+        
+        <h1>Payment Records - Kala Residency</h1>
+        
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
+
+        <div class="table-container">
+            <div class="controls">
+                <button id="exportBtn">EXPORT TO EXCEL</button>
+                <button id="refreshBtn">REFRESH DATA</button>
+            </div>
+            
+            <div id="loading" class="loading">Loading data...</div>
+            <table id="dataTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th data-sort="flat">Flat No</th>
+                        <th data-sort="name">Name</th>
+                        <th data-sort="amount">Amount (₹)</th>
+                        <th data-sort="purpose">Purpose</th>
+                        <th data-sort="month">Month</th>
+                        <th data-sort="paymentId">Payment ID</th>
+                        <th data-sort="timestamp">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="2"><strong>Total</strong></td>
+                        <td id="totalAmount"><strong>0</strong></td>
+                        <td colspan="4"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const REPO_OWNER = "dkapoore";
+        const REPO_NAME = "Kala_UPI";
+        const DATA_URL = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/data.json`;
+
+        let chart = null;
+        let allData = [];
+        let sortState = {};
+
+        document.addEventListener('DOMContentLoaded', loadData);
+        document.getElementById('refreshBtn').addEventListener('click', loadData);
+        document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const key = th.getAttribute('data-sort');
+                sortTable(key);
+                updateSortIndicator(th, key);
+            });
+        });
+
+        async function loadData() {
+            showLoading(true);
+            try {
+                const response = await fetch(DATA_URL + '?t=' + new Date().getTime());
+                if (!response.ok) throw new Error('Failed to fetch data');
+                
+                allData = await response.json();
+                renderTable(allData);
+                renderChart(allData);
+                showLoading(false);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showLoading(false, true);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let totalAmount = 0;
+            
+            if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="7" style="text-align: center; padding: 20px; color: #666;">No payment records found.</td>`;
+                tbody.appendChild(row);
+            } else {
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${escapeHtml(item.flat)}</td>
+                        <td>${escapeHtml(item.name)}</td>
+                        <td>${item.amount}</td>
+                        <td>${escapeHtml(item.purpose)}</td>
+                        <td>${item.month}</td>
+                        <td>${escapeHtml(item.paymentId)}</td>
+                        <td>${new Date(item.timestamp).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(row);
+                    totalAmount += item.amount;
+                });
+            }
+            
+            document.getElementById('totalAmount').textContent = totalAmount;
+            document.getElementById('dataTable').style.display = 'table';
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+
+            if (data.length === 0) {
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "#666";
+                ctx.textAlign = "center";
+                ctx.fillText("No data available for chart", ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            const amountsByName = {};
+            data.forEach(item => {
+                amountsByName[item.name] = (amountsByName[item.name] || 0) + item.amount;
+            });
+
+            const names = Object.keys(amountsByName);
+            const amounts = Object.values(amountsByName);
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [{
+                        label: 'Total Amount (₹)',
+                        data: amounts,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (₹)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Names'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function sortTable(key) {
+            if (!sortState[key]) {
+                sortState[key] = 'asc';
+            } else if (sortState[key] === 'asc') {
+                sortState[key] = 'desc';
+            } else {
+                sortState[key] = 'asc';
+            }
+
+            allData.sort((a, b) => {
+                let aVal = a[key];
+                let bVal = b[key];
+                
+                if (key === 'amount') {
+                    aVal = Number(aVal);
+                    bVal = Number(bVal);
+                } else if (key === 'timestamp') {
+                    aVal = new Date(aVal);
+                    bVal = new Date(bVal);
+                } else {
+                    aVal = String(aVal).toLowerCase();
+                    bVal = String(bVal).toLowerCase();
+                }
+                
+                if (sortState[key] === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            renderTable(allData);
+        }
+
+        function updateSortIndicator(th, key) {
+            document.querySelectorAll('th').forEach(header => {
+                header.textContent = header.textContent.replace(' ▲', '').replace(' ▼', '');
+            });
+            
+            const indicator = sortState[key] === 'asc' ? ' ▲' : ' ▼';
+            th.textContent += indicator;
+        }
+
+        function exportToExcel() {
+            if (allData.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+
+            const ws = XLSX.utils.json_to_sheet(allData.map(item => ({
+                'Flat No': item.flat,
+                'Name': item.name,
+                'Amount (₹)': item.amount,
+                'Purpose': item.purpose,
+                'Month': item.month,
+                'Payment ID': item.paymentId,
+                'Timestamp': new Date(item.timestamp).toLocaleString()
+            })));
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Payments');
+            XLSX.writeFile(wb, 'Kala_Residency_Payments.xlsx');
+        }
+
+        function showLoading(show, error = false) {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('dataTable');
+            
+            if (show) {
+                loading.textContent = 'Loading data...';
+                loading.style.display = 'block';
+                table.style.display = 'none';
+            } else if (error) {
+                loading.textContent = 'Error loading data. Please try again.';
+                loading.style.display = 'block';
+                table.style.display = 'none';
+            } else {
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
