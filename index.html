@@ -1,611 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kala Residency UPI Payment</title>
-  <style>
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body { font-family: system-ui, Roboto, sans-serif; background: linear-gradient(135deg,#667eea 0,#764ba2 100%); padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; color:#222; }
-    .container { width:100%; max-width:540px; background:#fff; padding:28px; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,0.25); position:relative; }
-    .header { text-align:center; margin-bottom:20px; }
-    .logo { width:72px; height:72px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:28px; background:linear-gradient(135deg,#667eea,#764ba2); box-shadow:0 6px 18px rgba(102,126,234,0.35); margin-bottom:10px; }
-    h2 { margin-bottom:4px; font-size:20px; }
-    .subtitle { color:#666; font-size:13px; }
-    form .form-group { margin-bottom:16px; }
-    label { display:block; font-weight:600; margin-bottom:6px; font-size:14px; }
-    select,input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid #e6e6e6; background:#fafafa; font-size:14px; }
-    button.primary { width:100%; padding:12px; border-radius:10px; border:none; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-weight:700; cursor:pointer; }
-    .success { display:none; padding:12px; border-radius:10px; background:linear-gradient(135deg,#11998e,#38ef7d); color:#fff; margin-bottom:12px; text-align:center; font-weight:700; }
-    .warning { display:none; padding:12px; border-radius:10px; background:linear-gradient(135deg,#fc4a1a,#f7b733); color:#fff; margin-bottom:12px; text-align:center; font-weight:700; }
-    .info { display:none; padding:12px; border-radius:10px; background:linear-gradient(135deg,#2196F3,#21CBF3); color:#fff; margin-bottom:12px; text-align:center; font-weight:700; }
-    #qrSection { display:none; margin-top:20px; }
-    
-    /* New QR Format Styling */
-    .qr-container { 
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      text-align: center;
-    }
-    .qr-header {
-      background-color: #007bff;
-      color: white;
-      padding: 15px;
-      margin: -16px -16px 20px -16px;
-    }
-    .qr-header h3 {
-      margin: 0;
-      font-size: 1.5em;
-    }
-    .qr-header p {
-      font-size: 0.8em;
-      margin: 5px 0 0 0;
-    }
-    .payment-details {
-      text-align: left;
-      margin-bottom: 20px;
-      border: 1px solid #00aaff;
-      padding: 15px;
-      border-radius: 4px;
-      background-color: #e6f7ff;
-    }
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 0;
-      font-size: 0.9em;
-    }
-    .detail-label {
-      font-weight: bold;
-      color: #333;
-    }
-    .detail-value {
-      color: #00aaff;
-      font-weight: bold;
-    }
-    #qrImage {
-      display: block;
-      margin: 0 auto;
-      border: 2px solid #ccc;
-      padding: 10px;
-      background-color: #fff;
-      max-width: 100%;
-      height: auto;
-    }
-    .instruction {
-      background-color: #ffc107;
-      color: #333;
-      padding: 10px;
-      border-radius: 4px;
-      font-size: 0.8em;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .whatsapp-reminder {
-      background-color: #25D366;
-      color: white;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .footer-note {
-      font-size: 0.7em;
-      margin-top: 20px;
-      color: #666;
-      text-align: center;
-    }
-    
-    .actions { display:flex; gap:10px; margin-top:12px; }
-    .btn { flex:1; padding:10px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
-    .btn.green { background:linear-gradient(135deg,#11998e,#38ef7d); color:#fff; }
-    .btn.blue { background:linear-gradient(135deg,#2196F3,#21CBF3); color:#fff; }
-    .note { background:#fff8e6; border-left:6px solid #ff9800; padding:12px; margin-top:12px; border-radius:8px; font-size:13px; line-height:1.4; color:#333; }
-    .note b { color:#e65100; }
-    .small { font-size:13px; color:#666; margin-top:8px; }
-    .row { display:flex; gap:8px; }
-    
-    /* New bullet box styling */
-    .bullet-box {
-      background: #fff;
-      border: 1px solid #e6e6e6;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-    .bullet-point {
-      margin-bottom: 8px;
-      display: flex;
-      align-items: flex-start;
-    }
-    .bullet-point:last-child {
-      margin-bottom: 0;
-    }
-    .bullet-point::before {
-      content: "•";
-      margin-right: 8px;
-      font-weight: bold;
-    }
-    @media (max-width:520px){ .container{padding:18px;} #qrImage{width:220px;height:220px;} }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Kala Residency Payment System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('kala.png');
+            /* CHANGE THE IMAGE PATH ABOVE: Replace 'your-society-image.jpg' with your actual image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 600px;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 18px;
+            margin: 25px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #cccccc;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">KR</div>
-      <h2>Kala Residency</h2>
-      <div class="subtitle">Secure Online Payment System</div>
-    </div>
-
-    <div id="successMessage" class="success">✓ Payment QR Generated Successfully!</div>
-    <div id="warningMessage" class="warning"></div>
-    <div id="infoMessage" class="info"></div>
-
-    <form id="payForm">
-      <div class="form-group">
-        <label>Flat/Shop Number</label>
-        <select id="flat" required>
-          <option value="">Select your flat/shop</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Full Name</label>
-        <input id="userName" type="text" placeholder="Enter your name" required />
-      </div>
-
-      <div class="form-group">
-        <label>Payment Month</label>
-        <input id="month" type="month" required />
-      </div>
-
-      <div class="form-group">
-        <label>Amount (₹)</label>
-        <input id="amount" type="number" min="1" placeholder="Enter amount" required />
-      </div>
-
-      <div class="form-group">
-        <label>Payment Purpose</label>
-        <select id="purpose" required>
-          <option>Maintenance</option>
-          <option>Water Charges</option>
-          <option>Parking</option>
-          <option>Sinking Fund</option>
-          <option>Other</option>
-        </select>
-      </div>
-
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button id="generateBtn" class="primary" type="submit">Generate Payment QR Code</button>
-      </div>
-    </form>
-
-    <div id="qrSection">
-      <div class="qr-container">
-        <div class="qr-header">
-          <h3>Kala Residency</h3>
-          <p>Secure & Verified Online Payment System</p>
-        </div>
-
-        <img id="qrImage" alt="Payment QR Code" src="" width="250" height="250">
+    <div class="container">
+        <h1>Welcome to Kala Residency Payment System</h1>
+        <p style="font-size: 18px; margin-bottom: 20px;">Secure and Easy Online Payments</p>
         
-        <div class="payment-details">
-          <h3 style="text-align: center; color: #00aaff; margin-top: 0;">Payment Details</h3>
-          <div class="detail-row"><span class="detail-label">Flat No / Shop</span> <span class="detail-value" id="qrFlat">-</span></div>
-          <div class="detail-row"><span class="detail-label">Name</span> <span class="detail-value" id="qrName">-</span></div>
-          <div class="detail-row"><span class="detail-label">Amount</span> <span class="detail-value" id="qrAmount">-</span></div>
-          <div class="detail-row"><span class="detail-label">Purpose</span> <span class="detail-value" id="qrPurpose">-</span></div>
-          <div class="detail-row"><span class="detail-label">Month</span> <span class="detail-value" id="qrMonth">-</span></div>
-          <div class="detail-row"><span class="detail-label">Payment ID</span> <span class="detail-value" id="qrPaymentId">-</span></div>
+        <a href="https://dkapoore.github.io/Kala_UPI/" class="button" id="paymentButton">
+            Open Payment Form
+        </a>
+        <!-- CHANGE THE LINK ABOVE: Replace 'https://dkapoore.github.io/Kala_UPI/' with your desired payment form URL -->
+        
+        <div class="footer">
+            <p>Kala Residency Society Management</p>
         </div>
-
-        <!-- New bullet box added above download button -->
-        <div class="bullet-box">
-          <div class="bullet-point">📢 महत्वाचे सूचना: पेमेंट निश्चित झाल्यानंतर, कृपया पेमेंट रसीद स्क्रीनशॉट कला रेसिडेन्सीच्या WhatsApp ग्रुप वर शेअर करणे विसरू नका</div>
-          <div class="bullet-point">हा QR फक्त एकदाच वापरा — पुढील पेमेंटवेळी चुकीची एन्ट्री टाळण्यासाठी वापरल्यानंतर आपल्या मोबाईल गॅलरीमधून Delete करा</div>
-        </div>
-
-        <div class="actions">
-          <button id="downloadQR" class="btn green">⬇ Download QR</button>
-        </div>
-
-        <p class="footer-note">Generated by Kala Residency Online Payment System</p>
-      </div>
     </div>
-  </div>
 
-<script>
-/* ================== CONFIG ================== */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5WVfwrGraL9Qu5lmPCcO-ufJvNqeqY_h83R69wUmCN4mnYtUo6ZDeXZ7NNB87lnseLA/exec";
-                    
-/* UPI PAY DETAILS */
-const UPI_PA = "9766893279@kotak811";
-const UPI_PN = "DEVENDRA KAPOORE";
-const UPI_CU = "INR";
-/* ============================================ */
-
-/* Global variables */
-let currentPaymentId = null;
-
-/* Fallback owner map */
-const fallbackOwners = {
-  "Flat 1": "BAGUL", "Flat 2": "GAYDHANI", "Flat 3": "GAIKWAD", "Flat 4": "MEHENDALE", 
-  "Flat 5": "GAIKWAD", "Flat 6": "DABHADE", "Flat 7": "Khandgune", "Flat 8": "S SHARMA", 
-  "Flat 9": "BANCHHODE", "Flat 10": "KARCHE", "Flat 11": "SAPKAL", "Flat 12": "DUGDHE", 
-  "Flat 13": "ZOPE", "Flat 14": "WAGHMARE", "Flat 15": "JOGI", "Flat 16": "BHAVSAR", 
-  "Flat 17": "B PATIL", "Flat 18": "V PATIL", "Flat 19": "KAPOORE", "Flat 20": "SHARMA", 
-  "Flat 21": "KHANDARE", "Shop 1": "SHOP 1", "Shop 2": "SHOP 2", "Shop 3": "SHOP 3", 
-  "Shop 4": "SHOP 4", "Shop 5": "SHOP 5"
-};
-
-/* ---------- Populate Flat Select ---------- */
-const flatSelect = document.getElementById('flat');
-Object.keys(fallbackOwners).forEach(k => {
-  const opt = document.createElement('option'); 
-  opt.value = k; 
-  opt.textContent = k; 
-  flatSelect.appendChild(opt);
-});
-
-/* Try fetch owners from server */
-async function loadOwnersFromServer() {
-  try {
-    const res = await fetch(`${SCRIPT_URL}?action=getOwners`);
-    const json = await res.json();
-    if (json.status === 'ok' && json.owners) {
-      flatSelect.innerHTML = '<option value="">Select your flat/shop</option>';
-      Object.keys(json.owners).forEach(k => {
-        const opt = document.createElement('option'); 
-        opt.value = k; 
-        opt.textContent = k; 
-        flatSelect.appendChild(opt);
-      });
-      Object.assign(fallbackOwners, json.owners);
-    }
-  } catch (e) {
-    console.log("Owners fetch failed, using fallback owners.", e);
-  }
-}
-loadOwnersFromServer();
-
-/* Set current month */
-document.getElementById('month').value = new Date().toISOString().slice(0,7);
-
-/* Auto-fill name when flat selected */
-flatSelect.addEventListener('change', (e) => {
-  const flat = e.target.value;
-  const nameInput = document.getElementById('userName');
-  if (flat && fallbackOwners[flat]) {
-    nameInput.value = fallbackOwners[flat];
-  } else {
-    nameInput.value = '';
-  }
-});
-
-/* Format name capitalization */
-function capWords(s) {
-  return s.split(' ').map(w => w ? (w[0].toUpperCase()+w.slice(1).toLowerCase()) : '').join(' ');
-}
-
-/* Generate UPI link */
-function buildUpiLink({amount, note}) {
-  return `upi://pay?pa=${encodeURIComponent(UPI_PA)}&pn=${encodeURIComponent(UPI_PN)}&am=${encodeURIComponent(amount)}&cu=${encodeURIComponent(UPI_CU)}&tn=${encodeURIComponent(note)}`;
-}
-
-/* Duplicate check */
-async function checkDuplicate(flat, month) {
-  try {
-    const url = `${SCRIPT_URL}?action=checkDuplicate&flat=${encodeURIComponent(flat)}&month=${encodeURIComponent(month)}`;
-    const res = await fetch(url);
-    const json = await res.json();
-    if (json.status === 'ok') return json.exists;
-    return false;
-  } catch (e) {
-    console.log('Duplicate check failed:', e);
-    return false;
-  }
-}
-
-/* Save to Google Sheet - FIXED VERSION */
-async function saveToGoogleSheet(payload) {
-  try {
-    console.log("Saving to Google Sheet:", payload);
-    
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    });
-    
-    const result = await response.json();
-    console.log("Save response:", result);
-    
-    if (result.status === 'success') {
-      return true;
-    } else {
-      showMessage('warningMessage', '⚠ Google Sheet update failed. Payment ID: ' + payload.paymentId);
-      return false;
-    }
-  } catch (error) {
-    console.error('Error saving to Google Sheet:', error);
-    showMessage('warningMessage', '⚠ Network error. Please check your connection. Payment ID: ' + payload.paymentId);
-    return false;
-  }
-}
-
-/* Show message */
-function showMessage(elementId, message) {
-  const element = document.getElementById(elementId);
-  element.textContent = message;
-  element.style.display = 'block';
-  setTimeout(() => {
-    element.style.display = 'none';
-  }, 5000);
-}
-
-/* Enhanced framed QR generator with 2-line Marathi WhatsApp note */
-async function generateFramedQRDataURL(upi, data) {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-
-  const width = 400;
-  const height = 650;
-  canvas.width = width;
-  canvas.height = height;
-
-  // background
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0,0,width,height);
-
-  // header
-  const headerH = 80;
-  ctx.fillStyle = "#007bff";
-  ctx.fillRect(0,0,width,headerH);
-
-  // Title
-  ctx.fillStyle = "#ffffff"; 
-  ctx.font = "bold 18px Arial"; 
-  ctx.textAlign = "center"; 
-  ctx.fillText("Kala Residency", width/2, 30);
-  
-  ctx.font = "12px Arial"; 
-  ctx.textAlign = "center"; 
-  ctx.fillText("Secure & Verified Online Payment System", width/2, 50);
-
-  // Load QR image
-  const img = new Image();
-  img.crossOrigin = "Anonymous";
-  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upi)}`;
-  await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
-
-  // Draw QR
-  const qrSize = 180;
-  const qrX = (width - qrSize) / 2;
-  const qrY = headerH + 30;
-  ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
-
-  // Payment details box
-  const detailsY = qrY + qrSize + 20;
-  const detailsH = 150;
-  
-  // Box background
-  ctx.fillStyle = "#e6f7ff";
-  ctx.fillRect(30, detailsY, width - 60, detailsH);
-  
-  // Box border
-  ctx.strokeStyle = "#00aaff";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(30, detailsY, width - 60, detailsH);
-  
-  // Details Title
-  ctx.fillStyle = "#00aaff"; 
-  ctx.font = "bold 16px Arial"; 
-  ctx.textAlign = "center"; 
-  ctx.fillText("Payment Details", width/2, detailsY + 20);
-
-  // Details lines
-  ctx.textAlign = "left"; 
-  ctx.font = "bold 11.5px Arial"; 
-  
-  const dx = 45;
-  let dy = detailsY + 40;
-  const lineGap = 15;
-
-  ctx.fillStyle = "#333"; 
-  const details = [
-    {label: "Flat No / Shop:", value: data.flat},
-    {label: "Name:", value: data.name},
-    {label: "Amount:", value: `₹${data.amount}`},
-    {label: "Purpose:", value: data.purpose},
-    {label: "Month:", value: data.month},
-    {label: "Payment ID:", value: data.paymentId}
-  ];
-
-  details.forEach(item => {
-    ctx.fillStyle = "#333"; ctx.fillText(item.label, dx, dy); 
-    ctx.fillStyle = "#00aaff"; ctx.fillText(item.value || '-', dx + 120, dy); 
-    dy += lineGap;
-  });
-
-  // New bullet box for Marathi notes
-  const bulletBoxY = detailsY + detailsH + 15;
-  const bulletBoxH = 80;
-  
-  // Box background
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(30, bulletBoxY, width - 60, bulletBoxH);
-  
-  // Box border
-  ctx.strokeStyle = "#e6e6e6";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(30, bulletBoxY, width - 60, bulletBoxH);
-  
-  // Bullet points
-  ctx.fillStyle = "#333"; 
-  ctx.font = "bold 10px Arial"; 
-  ctx.textAlign = "left";
-  
-  const bulletPoints = [
-    "📢 महत्वाचे सूचना: पेमेंट निश्चित झाल्यानंतर, कृपया पेमेंट रसीद स्क्रीनशॉट कला रेसिडेन्सीच्या WhatsApp ग्रुप वर शेअर करणे विसरू नका",
-    "हा QR फक्त एकदाच वापरा — पुढील पेमेंटवेळी चुकीची एन्ट्री टाळण्यासाठी वापरल्यानंतर आपल्या मोबाईल गॅलरीमधून Delete करा"
-  ];
-  
-  let textY = bulletBoxY + 20;
-  const lineHeight = 12;
-  
-  bulletPoints.forEach((point, index) => {
-    // Draw bullet point
-    ctx.fillText("•", 45, textY);
-    
-    // Split text into multiple lines if needed
-    const words = point.split(' ');
-    let line = '';
-    let lineCount = 0;
-    
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line + words[i] + ' ';
-      const metrics = ctx.measureText(testLine);
-      
-      if (metrics.width > (width - 90) && i > 0) {
-        ctx.fillText(line, 55, textY);
-        textY += lineHeight;
-        line = words[i] + ' ';
-        lineCount++;
-      } else {
-        line = testLine;
-      }
-    }
-    ctx.fillText(line, 55, textY);
-    textY += lineHeight + 5;
-  });
-
-  // Contact information section - removed download button
-  const contactY = bulletBoxY + bulletBoxH + 15;
-  ctx.fillStyle = "#666"; 
-  ctx.font = "9px Arial"; 
-  ctx.textAlign = "center"; 
-
-  // Split the long text into multiple lines
-  const contactLines = [
-    "जर अशी UPI पेमेंट प्रणाली तुम्हाला तुमच्या स्वतःच्या",
-    "कामासाठी हवी असेल, तर 9766893279 या क्रमांकावर",
-    "देवेंद्र कापुरे यांच्याशी संपर्क साधा."
-  ];
-
-contactLines.forEach((line, index) => {
-  ctx.fillText(line, width/2, contactY + (index * 12));
-});
-  // Footer
-  ctx.fillStyle = "#666"; 
-  ctx.font = "9px Arial"; 
-  ctx.textAlign = "center"; 
-  ctx.fillText("Generated by Kala Residency Online Payment System", width/2, height - 15);
-
-  return canvas.toDataURL("image/jpeg", 0.95);
-}
-
-/* ---- Event Handlers ---- */
-document.getElementById('payForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  // Collect form data
-  const flat = document.getElementById('flat').value.trim();
-  let name = document.getElementById('userName').value.trim();
-  name = capWords(name);
-  document.getElementById('userName').value = name;
-  const month = document.getElementById('month').value;
-  const amount = document.getElementById('amount').value;
-  const purpose = document.getElementById('purpose').value;
-
-  if (!flat || !name || !month || !amount) {
-    alert("Please fill all required fields.");
-    return;
-  }
-
-  // Duplicate check
-  const exists = await checkDuplicate(flat, month);
-  if (exists) {
-    alert(`Payment for ${flat} for month ${month} already exists. If this is a correction, please contact secretary.`);
-    return;
-  }
-
-  // Generate payment ID
-  currentPaymentId = `KRP${Date.now().toString().slice(-6)}`;
-
-  // Show details in QR section
-  document.getElementById('qrFlat').textContent = flat;
-  document.getElementById('qrName').textContent = name;
-  document.getElementById('qrAmount').textContent = "₹" + amount;
-  document.getElementById('qrMonth').textContent = month;
-  document.getElementById('qrPurpose').textContent = purpose;
-  document.getElementById('qrPaymentId').textContent = currentPaymentId;
-
-  // Build UPI link
-  const note = `${flat} - ${name} - ${month} - ${purpose} - ${currentPaymentId}`;
-  const upi = buildUpiLink({ amount, note });
-
-  // Set QR image
-  document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upi)}`;
-
-  // Show QR section
-  document.getElementById('qrSection').style.display = "block";
-  showMessage('successMessage', '✓ Payment QR Generated Successfully!');
-
-  // Scroll to QR section
-  document.getElementById('qrSection').scrollIntoView({ behavior: 'smooth' });
-
-  // Save to Google Sheet IMMEDIATELY (silently - no notification)
-  const payload = { 
-    flat, 
-    name, 
-    month, 
-    amount, 
-    purpose, 
-    paymentId: currentPaymentId,
-    status: 'generated',
-    timestamp: new Date().toISOString()
-  };
-  
-  await saveToGoogleSheet(payload);
-});
-
-/* Download framed QR */
-document.getElementById('downloadQR').addEventListener('click', async () => {
-  const flat = document.getElementById('qrFlat').textContent;
-  const name = document.getElementById('qrName').textContent;
-  const amount = document.getElementById('qrAmount').textContent.replace('₹','') || '0';
-  const month = document.getElementById('qrMonth').textContent;
-  const purpose = document.getElementById('qrPurpose').textContent;
-  const paymentId = document.getElementById('qrPaymentId').textContent;
-  
-  if (!flat) return alert('Please generate the QR first.');
-
-  const note = `${flat} - ${name} - ${month} - ${purpose} - ${paymentId}`;
-  const upi = buildUpiLink({ amount, note });
-  const data = { flat, name, amount, month, purpose, paymentId };
-
-  try {
-    const framed = await generateFramedQRDataURL(upi, data);
-    const a = document.createElement('a');
-    a.href = framed;
-    a.download = `Kala_Residency_QR_${flat}_${month}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch (e) {
-    console.error('Framed QR generation failed', e);
-    alert('QR download failed, try again.');
-  }
-});
-</script>
+    <script>
+        // Optional: You can add confirmation before redirecting
+        document.getElementById('paymentButton').addEventListener('click', function(e) {
+            if(!confirm('You are being redirected to the payment form. Continue?')) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>
